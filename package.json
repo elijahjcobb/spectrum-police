@@ -1,5 +1,5 @@
 {
-	"name": "@elijahjcobb/***",
+	"name": "@elijahjcobb/spectrum-police",
 	"version": "0.0.1",
 	"description": "",
 	"main": "dist/index",
@@ -25,7 +25,10 @@
 		"url": "https://github.com/elijahjcobb/***/issues"
 	},
 	"homepage": "https://github.com/elijahjcobb/***#readme",
-	"dependencies": {},
+	"dependencies": {
+		"@elijahjcobb/process": "latest",
+		"pretty-bytes": "latest"
+	},
 	"devDependencies": {
 		"@types/node": "latest",
 		"typescript": "latest",
