@@ -27,12 +27,14 @@
 	"homepage": "https://github.com/elijahjcobb/***#readme",
 	"dependencies": {
 		"@elijahjcobb/process": "latest",
-		"pretty-bytes": "latest"
+		"pretty-bytes": "latest",
+		"twitter": "latest"
 	},
 	"devDependencies": {
 		"@types/node": "latest",
 		"typescript": "latest",
-		"tslint": "latest"
+		"tslint": "latest",
+		"@types/twitter": "latest"
 	},
 	"files": [
 		"dist"
