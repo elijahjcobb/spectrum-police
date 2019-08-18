@@ -8,6 +8,14 @@
 
 import {Process, ProcessResponse} from "@elijahjcobb/process";
 import * as PrettyBytes from "pretty-bytes";
+import * as Twitter from "twitter";
+
+const twitter: Twitter = new Twitter({
+	consumer_key: "jUU5fAvh61AC5JToxlldnWDEt",
+	consumer_secret: "L5izNuOddnGvv6TbT0MMSCXr5A8t8YLoPizznNnFT2oQ30VuQQ",
+	access_token_key: "958520610891722752-theZvJCq9vNEw1WrLkiYp4yCoUJMMrB",
+	access_token_secret: "1YKFSQnUoRmsjuMU0GuOWGbmYnV69CQdv8nHH1j2OPoml"
+});
 
 type SpeedtestResponse = {
 	client: {
@@ -47,32 +55,81 @@ type SpeedtestResponse = {
 
 type SpectrumResponse = {
 	ping: string,
-	download: string,
-	upload: string
+	download: {
+		value: number,
+		readable: string
+	}
 };
 
 async function runTest(): Promise<SpectrumResponse> {
 
-	const process: Process = new Process("speedtest-cli", "--json");
+	const process: Process = new Process("speedtest-cli", "--json", "--no-upload");
 	const res: ProcessResponse = await process.run();
 
 	const resBody: string = res.data;
 	const resObj: SpeedtestResponse = JSON.parse(resBody);
 
 	const download: string = PrettyBytes(resObj.download, { bits: true }) + "/s";
-	const upload: string = PrettyBytes(resObj.upload, { bits: true }) + "/s";
 	const ping: string = resObj.ping + "ms";
 
 	return {
 		ping,
-		download,
-		upload
+		download: {
+			readable: download,
+			value: resObj.download
+		}
 	};
 }
 
-runTest().then((res: SpectrumResponse) => {
+function wait(minutes: number): Promise<void> {
 
-	console.log(res);
+	return new Promise<void>(((resolve: Function, reject: Function): void => {
 
+		setTimeout(() => {
 
-}).catch((err: any) => console.error(err));
+			resolve();
+
+		}, minutes * 1000 * 60);
+
+	}));
+
+}
+
+async function tweet(payload: string): Promise<Twitter.ResponseData> {
+
+	return  await twitter.post("statuses/update", {status: payload});
+
+}
+
+async function run(): Promise<void> {
+
+	console.log("Starting Test");
+
+	const speeds: SpectrumResponse = await runTest();
+	const downloadValue: number = speeds.download.value;
+	const downloadReadable: string = speeds.download.readable;
+
+	console.log(`Current: ${downloadReadable} (${downloadValue})`);
+
+	if (downloadValue < 200 * 1_000_000) {
+
+		console.log(`${new Date().toString()} - NOT FAST ENOUGH!`);
+		const msg: string = `Hey Ask_Spectrum, I am paying for 400 down... Right now all you're giving me is ${downloadReadable}. What's up..?`;
+		console.log(msg);
+
+	} else {
+
+		console.log(`${new Date().toString()} - WE CHILL`);
+
+	}
+
+	await wait(1 / 60);
+	await run();
+
+}
+
+(async (): Promise<void> => {
+
+	await run();
+
+})().then(() => {}).catch((err: any) => console.error(err));
