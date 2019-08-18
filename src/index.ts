@@ -11,10 +11,10 @@ import * as PrettyBytes from "pretty-bytes";
 import * as Twitter from "twitter";
 
 const twitter: Twitter = new Twitter({
-	consumer_key: "jUU5fAvh61AC5JToxlldnWDEt",
-	consumer_secret: "L5izNuOddnGvv6TbT0MMSCXr5A8t8YLoPizznNnFT2oQ30VuQQ",
-	access_token_key: "958520610891722752-theZvJCq9vNEw1WrLkiYp4yCoUJMMrB",
-	access_token_secret: "1YKFSQnUoRmsjuMU0GuOWGbmYnV69CQdv8nHH1j2OPoml"
+	consumer_key: "",
+	consumer_secret: "",
+	access_token_key: “",
+	access_token_secret: ""
 });
 
 type SpeedtestResponse = {
