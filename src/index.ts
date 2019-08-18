@@ -9,12 +9,14 @@
 import {Process, ProcessResponse} from "@elijahjcobb/process";
 import * as PrettyBytes from "pretty-bytes";
 import * as Twitter from "twitter";
+import * as FileSystem from "fs";
+import * as Path from "path";
 
 const twitter: Twitter = new Twitter({
-	consumer_key: "jUU5fAvh61AC5JToxlldnWDEt",
-	consumer_secret: "L5izNuOddnGvv6TbT0MMSCXr5A8t8YLoPizznNnFT2oQ30VuQQ",
-	access_token_key: "958520610891722752-theZvJCq9vNEw1WrLkiYp4yCoUJMMrB",
-	access_token_secret: "1YKFSQnUoRmsjuMU0GuOWGbmYnV69CQdv8nHH1j2OPoml"
+	consumer_key: "",
+	consumer_secret: "",
+	access_token_key: "",
+	access_token_secret: ""
 });
 
 type SpeedtestResponse = {
@@ -58,18 +60,23 @@ type SpectrumResponse = {
 	download: {
 		value: number,
 		readable: string
+	},
+	upload: {
+		value: number,
+		readable: string
 	}
 };
 
 async function runTest(): Promise<SpectrumResponse> {
 
-	const process: Process = new Process("speedtest-cli", "--json", "--no-upload");
+	const process: Process = new Process("speedtest-cli", "--json");
 	const res: ProcessResponse = await process.run();
 
 	const resBody: string = res.data;
 	const resObj: SpeedtestResponse = JSON.parse(resBody);
 
 	const download: string = PrettyBytes(resObj.download, { bits: true }) + "/s";
+	const upload: string = PrettyBytes(resObj.upload, { bits: true }) + "/s";
 	const ping: string = resObj.ping + "ms";
 
 	return {
@@ -77,8 +84,21 @@ async function runTest(): Promise<SpectrumResponse> {
 		download: {
 			readable: download,
 			value: resObj.download
+		},
+		upload: {
+			readable: upload,
+			value: resObj.upload
 		}
 	};
+}
+
+function log(res: SpectrumResponse): void {
+
+	const fileLocation: string = Path.resolve("./spectrum.csv");
+	if (!FileSystem.existsSync(fileLocation)) FileSystem.writeFileSync(fileLocation, "Time,Download,Upload,Ping");
+
+	FileSystem.appendFileSync(fileLocation, `\n${Date.now()},${res.download.readable},${res.upload.readable},${res.ping}`);
+
 }
 
 function wait(minutes: number): Promise<void> {
@@ -101,7 +121,7 @@ async function tweet(payload: string): Promise<Twitter.ResponseData> {
 
 }
 
-async function run(): Promise<void> {
+async function runTwitterBot(): Promise<void> {
 
 	console.log("Starting Test");
 
@@ -124,12 +144,22 @@ async function run(): Promise<void> {
 	}
 
 	await wait(1 / 60);
-	await run();
+	await runTwitterBot();
+
+}
+
+async function runLogger(): Promise<void> {
+
+	const testResult: SpectrumResponse = await runTest();
+	log(testResult);
+	await wait(1 / 60);
+
+	await runLogger();
 
 }
 
 (async (): Promise<void> => {
 
-	await run();
+	await runLogger();
 
 })().then(() => {}).catch((err: any) => console.error(err));
